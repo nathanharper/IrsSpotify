@@ -8,7 +8,7 @@ var http_port = process.argv[2] || 8090,
 
 server = http.createServer(function(req, res) {
     res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end(current_track.name + ' - ' + current_track.artist, "utf8");
+    res.end(current_track.artist + ' - ' + current_track.name, "utf8");
 }).listen(http_port);
 
 // Upgrade the HTTP connection to a Websocket
