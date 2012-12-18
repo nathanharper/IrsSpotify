@@ -1,0 +1,16 @@
+{
+    "BundleType": "Application",
+    "BundleIdentifier": "irssi",
+    "AppIcon": {
+        "36x18": "tutorial.png"
+    },
+    "AppName": {
+        "en": "IrsSpotify"
+    },
+    "SupportedLanguages": [
+        "en"
+    ],
+    "RequiredPermissions": [
+        "http://localhost"
+    ]
+}
