@@ -1,89 +1,59 @@
-# this is stolen wholesale from the Irssi scripting page as an example
-# of non-blocking IO with forks so I can adapt it for my purposes later.
 use strict;
-use warnings;
+use vars qw($VERSION %IRSSI);
+use Irssi qw(command_bind active_win);
+use LWP::UserAgent;
+use utf8;
 
-use Irssi;
-use POSIX;
-use Time::HiRes qw/sleep/;
+$VERSION = '0.3';
 
-my $forked = 0;
+%IRSSI =
+(
+    authors     => 'Nathan Harper',
+    contact     => 'nathan@reflexionsdata.com',
+    name        => 'spotify now playing',
+    description => 'polls spotify for current track',
+    license     => 'iunno',
+    url         => 'https://github.com/nathanharper/IrsSpotify',
+    changed     => 'Fri Aug 29 16:46:47 IST 2008',
+    commands    => 'irsspotify',
+);
 
-sub pipe_and_fork {
-    my ($read_handle, $write_handle);
+my $current_track = ''; # store the last track so we don't repeat ourselves
 
-    pipe($read_handle, $write_handle);
+sub irsspotify {
+    my $timeout_flag = Irssi::timeout_add((10 * 1000), 'spotify_poll', ''); # 10 seconds
+}
 
-    my $oldfh = select($write_handle);
-    $| = 1;
-    select $oldfh;
+sub spotify_poll {
+    my $url = "http://localhost:8090";
+    my $agent = LWP::UserAgent->new();
+    $agent->agent('spotify script');
 
-    return if $forked;
+    $agent->timeout(60);
+    
+    my $request = HTTP::Request->new(GET => $url);
+    my $result = $agent->request($request);
 
-    my $pid = fork();
+    $result->is_success or return;
 
-    if (not defined $pid) {
-        _error("Can't fork: Aborting");
-        close($read_handle);
-        close($write_handle);
-        return;
-    }
+    my $str = $result->content;
 
-    $forked = 1;
-
-    if ($pid > 0) { # this is the parent (Irssi)
-        close ($write_handle);
-        Irssi::pidwait_add($pid);
-        my $job = $pid;
-        my $tag;
-        my @args = ($read_handle, \$tag, $job);
-        $tag = Irssi::input_add(fileno($read_handle),
-                                      Irssi::INPUT_READ,
-                                      \&child_input,
-                                      \@args);
-
-    } else { # child
-        # make up some data - block if we like.
-        for (1..10) {
-            sleep rand 1;
-            print $write_handle "Some data: $_\n";
+    if (length($str) > 0 && $str ne $current_track) {
+        $current_track = $str;
+        foreach my $chan (Irssi::channels())
+        {
+            if('#rJams' eq $chan->{'name'})
+            {
+                $chan->window->command("/me : $str");
+            }
         }
-        print $write_handle "__DONE__\n";
-        close $write_handle;
-
-        POSIX::_exit(1);
     }
-}
-
-sub child_input {
-    my $args = shift;
-    my ($read_handle, $input_tag_ref, $job) = @$args;
-
-    my $data = <$read_handle>;
-
-    if ($data =~ m/__DONE__/) {
-        close($read_handle);
-        Irssi::input_remove($$input_tag_ref);
-        _msg("child finished");
-
-        $forked = 0;
-
-    } else {
-        _msg("Received from child: $data");
+    else {
+        # Irssi::print('old track! not repeating.');
     }
 
+    return $str;
 }
 
-sub _error {
-    my ($msg) = @_;
-    my $win = Irssi::active_win();
-    $win->print($msg, Irssi::MSGLEVEL_CLIENTERROR);
-}
+Irssi::command_bind("irsspotify", \&irsspotify);
 
-sub _msg {
-    my ($msg) = @_;
-    my $win = Irssi::active_win();
-    $win->print($msg, Irssi::MSGLEVEL_CLIENTCRAP);
-}
-
-Irssi::command_bind("start_pipes", \&pipe_and_fork);
