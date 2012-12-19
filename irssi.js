@@ -16,7 +16,7 @@ function init() {
                 cursong = player.track.uri;
                 socket.emit('new song', {
                     'name' : player.track.name,
-                    'artist' : player.track.artists[0].name,
+                    'artists' : player.track.artists,
                     'uri' : player.track.uri
                 });
             }

@@ -2,13 +2,21 @@ var http_port = process.argv[2] || 8090,
     tcp_port = process.argv[3] || 1234,
     http = require('http'),
     io = require('socket.io'),
-    net = require('net'),
     current_track = {};
 
 
 server = http.createServer(function(req, res) {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end(current_track.artist + ' - ' + current_track.name, "utf8");
+    var data = '',
+        artist_list = [];
+    if (current_track.artists && current_track.name) {
+        for (var i = 0; i < current_track.artists.length; i++) {
+            artist_list.push(current_track.artists[i].name);
+        }
+        data = artist_list.join(' & ') + ' - ' + current_track.name;
+    }
+
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end(data, "utf8");
 }).listen(http_port);
 
 // Upgrade the HTTP connection to a Websocket
@@ -20,11 +28,11 @@ websocket.sockets.on('connection', function(client) {
     console.log('a client connected!');
 
     client.on('new song', function(data) {
-        current_track['artist'] = data.artist;
+        current_track['artists'] = data.artists;
         current_track['name'] = data.name;
-        console.log('Newtrack received!');
-        console.log('Name: ' + data.name);
-        console.log('Artist: ' + data.artist);
+        // console.log('Newtrack received!');
+        // console.log('Name: ' + data.name);
+        // console.log('Artist: ' + data.artists.join(' & '));
     });
 
 });
