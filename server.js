@@ -10,7 +10,7 @@ server = http.createServer(function(req, res) {
         artist_list = [];
     if (current_track.artists && current_track.name) {
         for (var i = 0; i < current_track.artists.length; i++) {
-            artist_list.push(current_track.artists[i].name);
+            artist_list.push(current_track.artists[i].data.name);
         }
         data = artist_list.join(' & ') + ' - ' + current_track.name;
     }
