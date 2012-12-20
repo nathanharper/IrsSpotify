@@ -44,6 +44,8 @@ sub spotify_poll {
         {
             if('#rJams' eq $chan->{'name'})
             {
+                $str=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
+                $str=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
                 $chan->window->command("/me : $str");
             }
         }
