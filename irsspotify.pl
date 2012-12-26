@@ -21,6 +21,7 @@ $VERSION = '0.3';
 my $current_track = ''; # store the last track so we don't repeat ourselves
 
 sub irsspotify {
+    Irssi::print('Started Irsspotify session');
     my $timeout_flag = Irssi::timeout_add((10 * 1000), 'spotify_poll', ''); # 10 seconds
 }
 
@@ -46,6 +47,11 @@ sub spotify_poll {
             {
                 $str=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
                 $str=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
+                $str=~s/&amp;?/&/g;
+
+                # strip out that stupid "1999 Digital Remaster" shit they always put in the song title
+                $str=~s/(?:\-\s+)?\d{4}\s+(?:digital\s+)?remaster//gi;
+
                 $chan->window->command("/me : $str");
             }
         }
