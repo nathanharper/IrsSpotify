@@ -1,6 +1,6 @@
 {
     "BundleType": "Application",
-    "BundleIdentifier": "irssi",
+    "BundleIdentifier": "irsspotify",
     "AppIcon": {
         "36x18": "tutorial.png"
     },
@@ -11,6 +11,12 @@
         "en"
     ],
     "RequiredPermissions": [
-        "http://localhost"
+        "http://localhost",
+        "http://cuteoverload.com",
+        "http://ajax.googleapis.com",
+        "https://ajax.googleapis.com",
+        "http://feeds.wordpress.com",
+        "http://stats.wordpress.com",
+        "http://cuteoverload.files.wordpress.com"
     ]
 }

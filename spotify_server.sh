@@ -10,4 +10,4 @@ tmux send-keys -t irsspotify "node ~/Spotify/irsspotify/server.js" C-m
 
 # Start the Spotify binary with the custom app preloaded
 tmux split-window -t irsspotify -v -p50
-tmux send-keys -t irsspotify "/Applications/Spotify.app/Contents/MacOS/Spotify spotify:app:irssi" C-m
+tmux send-keys -t irsspotify "/Applications/Spotify.app/Contents/MacOS/Spotify spotify:app:irsspotify" C-m

@@ -4,7 +4,6 @@ var http_port = process.argv[2] || 8090,
     io = require('socket.io'),
     current_track = {};
 
-
 server = http.createServer(function(req, res) {
     var data = '',
         artist_list = [];
@@ -19,7 +18,6 @@ server = http.createServer(function(req, res) {
     res.end(data, "utf8");
 }).listen(http_port);
 
-// Upgrade the HTTP connection to a Websocket
 websocket = io.listen(server);
 
 // Once we've made a websocket connection...
@@ -30,9 +28,6 @@ websocket.sockets.on('connection', function(client) {
     client.on('new song', function(data) {
         current_track['artists'] = data.artists;
         current_track['name'] = data.name;
-        // console.log('Newtrack received!');
-        // console.log('Name: ' + data.name);
-        // console.log('Artist: ' + data.artists.join(' & '));
     });
 
 });
