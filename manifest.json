@@ -2,7 +2,7 @@
     "BundleType": "Application",
     "BundleIdentifier": "irsspotify",
     "AppIcon": {
-        "36x18": "tutorial.png"
+        "36x18": "irssi-icon.png"
     },
     "AppName": {
         "en": "IrsSpotify"
