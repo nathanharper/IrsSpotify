@@ -25,11 +25,12 @@ function init() {
                     'uri' : player.track.uri
                 });
 
-                if (final_countdown == 35) {
+                if (final_countdown == 20) {
                     final_countdown = 0;
                     load_cute_image();
                 }
                 final_countdown++;
+                console.log('songs played since last RSS load: ' + final_countdown);
             }
         });
     });
