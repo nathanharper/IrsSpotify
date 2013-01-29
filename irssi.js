@@ -10,11 +10,11 @@ sp.require('jquery.min');
 function init() {
     console.log('init sequence!');
 
+    load_cute_image();
+
     var socket = io.connect('http://localhost:8090');
     socket.on('connect', function() {
         console.log('connected successfully!');
-
-        load_cute_image();
 
         player.observe(models.EVENT.CHANGE, function (e) {
             if (e.data.curtrack && player.track != null && player.track.uri != cursong) {
