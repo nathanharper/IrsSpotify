@@ -2,6 +2,7 @@ use strict;
 use vars qw($VERSION %IRSSI);
 use Irssi qw(command_bind active_win);
 use LWP::UserAgent;
+use JSON;
 use utf8;
 
 $VERSION = '0.3';
@@ -18,7 +19,10 @@ $VERSION = '0.3';
     commands    => 'irsspotify',
 );
 
-my $current_track = ''; # store the last track so we don't repeat ourselves
+# store the last track so we don't repeat ourselves
+my $track_name = '';
+my $track_artist = '';
+my $track_id = '';
 
 sub irsspotify {
     Irssi::print('Started Irsspotify session');
@@ -37,22 +41,27 @@ sub spotify_poll {
 
     $result->is_success or return;
 
-    my $str = $result->content;
+    my $track = $result->content;
+    if (length($track) > 0) {
+        $track = decode_json $track;
+    }
 
-    if (length($str) > 0 && $str ne $current_track) {
-        $current_track = $str;
+    if ($track->{'id'} ne $track_id) {
+        $track_id = $track->{'id'};
+        $track_name = $track->{'name'};
+        $track_artist = $track->{'artist'};
+        $track_name =~ s/\s-\s.*$//g; # not foolproof, but this usually strips out any "remaster" crap
+
         foreach my $chan (Irssi::channels())
         {
             if('#rJams' eq $chan->{'name'})
             {
-                $str=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
-                $str=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
-                $str=~s/&amp;?/&/g;
+                my $to_print = $track_artist . ' - ' . $track_name;
+                $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
+                $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
+                $to_print=~s/&amp;?/&/g;
 
-                # strip out that stupid "1999 Digital Remaster" shit they always put in the song title
-                $str=~s/(?:\-\s+)?\d{4}\s+(?:-\s+)?(?:digital\s+)?remaster//gi;
-
-                $chan->window->command("/me : $str");
+                $chan->window->command("/me : $to_print");
             }
         }
     }
@@ -60,7 +69,7 @@ sub spotify_poll {
         # Irssi::print('old track! not repeating.');
     }
 
-    return $str;
+    return $track;
 }
 
 Irssi::command_bind("irsspotify", \&irsspotify);
