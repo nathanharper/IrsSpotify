@@ -52,17 +52,13 @@ sub spotify_poll {
         $track_artist = $track->{'artist'};
         $track_name =~ s/\s-\s.*$//g; # not foolproof, but this usually strips out any "remaster" crap
 
-        foreach my $chan (Irssi::channels())
-        {
-            if('#rJams' eq $chan->{'name'})
-            {
-                my $to_print = $track_artist . ' - ' . $track_name;
-                $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
-                $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
-                $to_print=~s/&amp;?/&/g;
+        if (my $chan = Irssi::channel_find('#rJams')) {
+            my $to_print = $track_artist . ' - ' . $track_name;
+            $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
+            $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
+            $to_print=~s/&amp;?/&/g;
 
-                $chan->window->command("/me : $to_print");
-            }
+            $chan->window->command("/me : $to_print");
         }
     }
     else {

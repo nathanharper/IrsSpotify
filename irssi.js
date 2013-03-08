@@ -25,7 +25,7 @@ function init() {
                     'uri' : player.track.uri
                 });
 
-                if (final_countdown == 20) {
+                if (final_countdown == 10) {
                     final_countdown = 0;
                     load_cute_image();
                 }
