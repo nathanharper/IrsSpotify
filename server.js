@@ -1,5 +1,4 @@
 var http_port = process.argv[2] || 8090,
-    tcp_port = process.argv[3] || 1234,
     http = require('http'),
     io = require('socket.io'),
     current_track = {};

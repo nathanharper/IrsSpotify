@@ -26,11 +26,13 @@ my $track_id = '';
 
 sub irsspotify {
     Irssi::print('Started Irsspotify session');
-    my $timeout_flag = Irssi::timeout_add((20 * 1000), 'spotify_poll', '');
+    my $timeout = Irssi::settings_get_int('irsspotify_timeout');
+    my $timeout_flag = Irssi::timeout_add(($timeout * 1000), 'spotify_poll', '');
 }
 
 sub spotify_poll {
-    my $url = "http://localhost:8090";
+    my $port = Irssi::settings_get_int('irsspotify_port');
+    my $url = "http://localhost:" . $port;
     my $agent = LWP::UserAgent->new();
     $agent->agent('spotify script');
 
@@ -52,7 +54,8 @@ sub spotify_poll {
         $track_artist = $track->{'artist'};
         $track_name =~ s/\s-\s.*$//g; # not foolproof, but this usually strips out any "remaster" crap
 
-        if (my $chan = Irssi::channel_find('#rJams')) {
+        my $chan_name = Irssi:settings_get_str('irsspotify_chan');
+        if (my $chan = Irssi::channel_find($chan_name)) {
             my $to_print = $track_artist . ' - ' . $track_name;
             $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
             $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
@@ -69,3 +72,6 @@ sub spotify_poll {
 }
 
 Irssi::command_bind("irsspotify", \&irsspotify);
+Irssi::settings_add_int('irsspotify', 'irsspotify_port', 8090);
+Irssi::settings_add_int('irsspotify', 'irsspotify_timeout', 20);
+Irssi::settings_add_str('irsspotify', 'irsspotify_chan', '#rJams');
