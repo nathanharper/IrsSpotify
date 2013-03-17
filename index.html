@@ -5,10 +5,16 @@
         <title>IRC Reporter</title>
         <link rel="stylesheet" href="sp://import/css/adam.css">
         <script src="/socket.io.js" type="text/javascript"></script>
-        <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script> -->
     </head>
     <body onload="sp = getSpotifyApi(1); irssi = sp.require('irssi'); irssi.init();">
-        <!-- <img src="/nicolas.jpg" /> -->
+        <div id="connection_status" style="color:red;">
+            <i>Disconnected</i>
+        </div>
+        <form name="connect" method="" action="">
+            Port: <input type="text" name="port_num" id="port_num" value="8090" />
+            <input type="button" name="connect_submit" id="connect_submit" value="Connect" />
+        </form>
+        <br />
         <div id="img_goes_here"></div>
     </body>
 </html>

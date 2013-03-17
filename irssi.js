@@ -12,10 +12,27 @@ function init() {
 
     load_cute_image();
 
-    var socket = io.connect('http://localhost:8090');
-    socket.on('connect', function() {
-        console.log('connected successfully!');
+    $('#connect_submit').click(function() {
+        var port = $('#port_num').val();
+        server_connect(port);
+    });
 
+}
+
+function load_cute_image() {
+    $.getJSON('http://ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=1&q=http://cuteoverload.com/feed', function (data) {
+        $('#img_goes_here').html(data.responseData.feed.entries[0].content);
+    });
+}
+
+function server_connect(port) {
+    var socket = io.connect('http://localhost:' + port);
+    socket.on('connect', function() {
+        $('#connection_status')
+            .css('color','green')
+            .html('<b>CONNECTED on port ' + port + '</b>');
+
+        // TODO: break observer when we lose connection
         player.observe(models.EVENT.CHANGE, function (e) {
             if (e.data.curtrack && player.track != null && player.track.uri != cursong) {
                 cursong = player.track.uri;
@@ -33,12 +50,9 @@ function init() {
                 console.log('songs played since last RSS load: ' + final_countdown);
             }
         });
-    });
-
-}
-
-function load_cute_image() {
-    $.getJSON('http://ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=1&q=http://cuteoverload.com/feed', function (data) {
-        $('#img_goes_here').html(data.responseData.feed.entries[0].content);
+    }).on('disconnect', function() {
+        $('#connection_status')
+            .css('color','red')
+            .html('<i>Disconnected</i>');
     });
 }
