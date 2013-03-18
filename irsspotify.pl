@@ -54,7 +54,7 @@ sub spotify_poll {
         $track_artist = $track->{'artist'};
         $track_name =~ s/\s-\s.*$//g; # not foolproof, but this usually strips out any "remaster" crap
 
-        my $chan_name = Irssi:settings_get_str('irsspotify_chan');
+        my $chan_name = Irssi::settings_get_str('irsspotify_chan');
         if (my $chan = Irssi::channel_find($chan_name)) {
             my $to_print = $track_artist . ' - ' . $track_name;
             $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
