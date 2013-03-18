@@ -35,7 +35,7 @@ cd ~/.irssi/scripts/
 ln -s ~/Spotify/irsspotify/irsspotify.pl .
 </pre>
 
-Boot up Irssi and run the following commands. Here you can set the default port, channel, and the number of seconds to wait between each song poll. Make sure that the port number you give Irssi matches the one you started the node server with! Default port is 8090, default channel is '#rJams', and default poll timeout is 20 seconds.
+Boot up Irssi and run the following commands. Here you can set the default port, channel, and the number of seconds to wait between each song poll. Make sure that the port number you give Irssi matches the one you started the node server with! Default port is 8090, default channel is '#music', and default poll timeout is 20 seconds.
 
 <pre>
 /script load irsspotify

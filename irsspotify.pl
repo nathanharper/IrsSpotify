@@ -74,4 +74,4 @@ sub spotify_poll {
 Irssi::command_bind("irsspotify", \&irsspotify);
 Irssi::settings_add_int('irsspotify', 'irsspotify_port', 8090);
 Irssi::settings_add_int('irsspotify', 'irsspotify_timeout', 20);
-Irssi::settings_add_str('irsspotify', 'irsspotify_chan', '#rJams');
+Irssi::settings_add_str('irsspotify', 'irsspotify_chan', '#music');
