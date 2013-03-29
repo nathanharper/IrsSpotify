@@ -45,4 +45,18 @@ Boot up Irssi and run the following commands. Here you can set the default port,
 /irsspotify
 </pre>
 
+If you want to record song plays to a mysql database for your own evil purposes, create a new database and initialize it with the "music.sql" script like so:
+
+<pre>
+mysql -u USER -p DATABASE < music.sql
+</pre>
+
+And then in Irssi, set DBI defaults:
+
+<pre>
+/set dbi_user USER # the mysql username to use to connect
+/set dbi_password PASSWORD # password for the user
+/set dbi_source dbi:mysql:mysql:localhost # this is a descriptor for the database driver. check out Perl's DBI documentation for more details.
+</pre>
+
 That's it! Now you just have to automate the boot process ;)
