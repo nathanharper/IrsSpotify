@@ -1,9 +1,15 @@
 use strict;
+use utf8;
 use vars qw($VERSION %IRSSI);
 use Irssi qw(command_bind active_win);
 use LWP::UserAgent;
 use JSON;
-use utf8;
+use DBI;
+# TODO: 
+# 1. prevent duplicate polling if /irsspotify is called twice.
+# 2. save all settings as global vars and update 
+#    when a settings change is detected, so we don't need to read settings each time we poll
+# 3. make a change to irsspotify_timeout take effect immediately
 
 $VERSION = '0.3';
 
@@ -23,9 +29,22 @@ $VERSION = '0.3';
 my $track_name = '';
 my $track_artist = '';
 my $track_id = '';
+my $DBI_DRIVER = '';
+my $DBI_USER = '';
+my $DBI_PASSWORD = '';
+my $MY_NICK = '';
+my $MY_CHAN = '';
 
+# Use this function to initiate
 sub irsspotify {
     Irssi::print('Started Irsspotify session');
+    $DBI_DRIVER = Irssi::settings_get_str('dbi_source');
+    $DBI_USER = Irssi::settings_get_str('dbi_user');
+    $DBI_PASSWORD = Irssi::settings_get_str('dbi_password');
+    $MY_CHAN = Irssi::settings_get_str('irsspotify_chan');
+    if (my $chan = Irssi::channel_find($MY_CHAN)) {
+        $MY_NICK = $chan->{server}->{nick};
+    }
     my $timeout = Irssi::settings_get_int('irsspotify_timeout');
     my $timeout_flag = Irssi::timeout_add(($timeout * 1000), 'spotify_poll', '');
 }
@@ -52,16 +71,15 @@ sub spotify_poll {
         $track_id = $track->{'id'};
         $track_name = $track->{'name'};
         $track_artist = $track->{'artist'};
-        $track_name =~ s/\s-\s.*$//g; # not foolproof, but this usually strips out any "remaster" crap
+        save_song($track_name, $track_artist, 'spotify', $MY_NICK);
 
-        my $chan_name = Irssi::settings_get_str('irsspotify_chan');
-        if (my $chan = Irssi::channel_find($chan_name)) {
+        if (my $chan = Irssi::channel_find($MY_CHAN)) {
             my $to_print = $track_artist . ' - ' . $track_name;
             $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
             $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
             $to_print=~s/&amp;?/&/g;
 
-            $chan->window->command("/me : $to_print");
+            $chan->window->command("/me : $to_print (spotify)");
         }
     }
     else {
@@ -71,7 +89,53 @@ sub spotify_poll {
     return $track;
 }
 
-Irssi::command_bind("irsspotify", \&irsspotify);
+sub save_song {
+    my ($title, $artist, $service, $nick) = @_;
+    if ($DBI_DRIVER && $DBI_USER && $DBI_PASSWORD) {
+        my $dbh = DBI->connect($DBI_DRIVER, $DBI_USER, $DBI_PASSWORD)
+            or return 0;
+        my $user_id = get_user_id($dbh, $nick);
+        my $query = sprintf "INSERT INTO `play` (`title`, `artist`, `service`, `user_id`, `created_time`) VALUES (%s, %s, %s, %d, UNIX_TIMESTAMP())", 
+            $dbh->quote($title), 
+            $dbh->quote($artist),
+            $dbh->quote($service),
+            $user_id;
+        $dbh->do($query) 
+            or return 0;
+    }
+    return 1;
+}
+
+# Search for the user in the database and create if necessary.
+sub get_user_id {
+    my ($dbh, $username) = @_;
+    my $query = sprintf "SELECT `id` FROM `user` WHERE `name` = %s", $dbh->quote($username);
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or return 0;
+    if (my $result = $sth->fetchrow_hashref()) {
+        return $result->{id} or 0;
+    }
+    $query = sprintf "INSERT INTO `user` (`name`) VALUES (%s)", $dbh->quote($username);
+    $dbh->do($query) or return 0;
+    return $dbh->last_insert_id(undef, undef, undef, undef) or 0; # parameters not necessary for mysql...
+}
+
+# catch messages from other users. Record them if they look like song reports.
+sub catch_play {
+    my ($server, $msg, $nick, $address, $target) = @_;
+    if ($target ne $MY_CHAN || $nick eq $MY_NICK) return;
+    if ($msg =~ /^\s*(\S.*)\s-\s+(\S.*?)(?:\s+\((\S.*)\)\s*)?$/) {
+        save_song($2, $1, "$3", $nick);
+    }
+    Irssi::signal_continue($server, $msg, $nick, $address, $target);
+}
+
 Irssi::settings_add_int('irsspotify', 'irsspotify_port', 8090);
 Irssi::settings_add_int('irsspotify', 'irsspotify_timeout', 20);
 Irssi::settings_add_str('irsspotify', 'irsspotify_chan', '#music');
+Irssi::settings_add_str('irsspotify', 'dbi_source', 'dbi:mysql:mysql:localhost');
+Irssi::settings_add_str('irsspotify', 'dbi_user', 'root');
+Irssi::settings_add_str('irsspotify', 'dbi_password', '');
+
+Irssi::command_bind("irsspotify", \&irsspotify);
+Irssi::signal_add('message public', 'catch_play');
