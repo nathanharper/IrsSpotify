@@ -34,6 +34,7 @@ my $DBI_USER = '';
 my $DBI_PASSWORD = '';
 my $MY_NICK = '';
 my $MY_CHAN = '';
+my %UID_HASH = ();
 
 # Use this function to initiate
 sub irsspotify {
@@ -102,6 +103,7 @@ sub save_song {
             $user_id;
         $dbh->do($query) 
             or return 0;
+        $dbh->disconnect;
     }
     return 1;
 }
@@ -109,22 +111,29 @@ sub save_song {
 # Search for the user in the database and create if necessary.
 sub get_user_id {
     my ($dbh, $username) = @_;
-    my $query = sprintf "SELECT `id` FROM `user` WHERE `name` = %s", $dbh->quote($username);
-    my $sth = $dbh->prepare($query);
-    $sth->execute() or return 0;
-    if (my $result = $sth->fetchrow_hashref()) {
-        return $result->{id} or 0;
+    if (!$UID_HASH{$username}) {
+        my $id = 0;
+        my $query = sprintf "SELECT `id` FROM `user` WHERE `name` = %s", $dbh->quote($username);
+        my $sth = $dbh->prepare($query);
+        $sth->execute() or return 0;
+        if (my $result = $sth->fetchrow_hashref()) {
+            $id = $result->{id} or 0;
+        }
+        else {
+            $query = sprintf "INSERT INTO `user` (`name`) VALUES (%s)", $dbh->quote($username);
+            $dbh->do($query) or return 0;
+            $id = $dbh->last_insert_id(undef, undef, undef, undef) or 0; # parameters not necessary for mysql...
+        }
+        $UID_HASH{$username} = $id;
     }
-    $query = sprintf "INSERT INTO `user` (`name`) VALUES (%s)", $dbh->quote($username);
-    $dbh->do($query) or return 0;
-    return $dbh->last_insert_id(undef, undef, undef, undef) or 0; # parameters not necessary for mysql...
+    return $UID_HASH{$username};
 }
 
 # catch messages from other users. Record them if they look like song reports.
 sub catch_play {
     my ($server, $msg, $nick, $address, $target) = @_;
-    if ($target ne $MY_CHAN || $nick eq $MY_NICK) return;
-    if ($msg =~ /^\s*(\S.*)\s-\s+(\S.*?)(?:\s+\((\S.*)\)\s*)?$/) {
+    if ($target ne $MY_CHAN || $nick eq $MY_NICK) { return; }
+    if ($msg =~ /^\s*(\S.*?)\s-\s+(\S.*?)(?:\s+\((\S.*)\)\s*)?$/) {
         save_song($2, $1, "$3", $nick);
     }
     Irssi::signal_continue($server, $msg, $nick, $address, $target);
