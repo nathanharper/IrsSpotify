@@ -68,10 +68,10 @@ sub spotify_poll {
         $track = decode_json $track;
     }
 
-    if ($track->{'id'} ne $track_id) {
-        $track_id = $track->{'id'};
-        $track_name = $track->{'name'};
-        $track_artist = $track->{'artist'};
+    if ($track->{id} && $track->{id} ne $track_id) {
+        $track_id = $track->{id};
+        $track_name = $track->{name};
+        $track_artist = $track->{artist};
         save_song($track_name, $track_artist, 'spotify', $MY_NICK);
 
         if (my $chan = Irssi::channel_find($MY_CHAN)) {

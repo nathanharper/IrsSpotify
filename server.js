@@ -1,6 +1,5 @@
 var http_port = process.argv[2] || 8090,
     http = require('http'),
-    // io = require('socket.io'),
     qs = require('querystring'),
     current_track = {};
 
