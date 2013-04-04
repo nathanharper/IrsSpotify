@@ -1,20 +1,18 @@
 var http_port = process.argv[2] || 8090,
     http = require('http'),
-    io = require('socket.io'),
+    // io = require('socket.io'),
     qs = require('querystring'),
     current_track = {};
 
 server = http.createServer(function(req, res) {
     if (req.method == 'POST') {
-        // POST method as alternative to the websocket
-        // ideally this should make sure the POST isn't endless,
-        // but I'm assuming this server is not going to be public...
+        // TODO: make this less shittay
         var body = '';
         req.on('data', function (data) {
-            // TODO: make this shit better
             body += data;
         });
         req.on('end', function() {
+            console.log('POST: ' + body);
             var POST = qs.parse(body);
             set_track_data(POST);
         });
@@ -23,21 +21,22 @@ server = http.createServer(function(req, res) {
     res.end(JSON.stringify(current_track), "utf8");
 }).listen(http_port);
 
-websocket = io.listen(server);
+// websocket = io.listen(server);
 
 // Once we've made a websocket connection...
-websocket.sockets.on('connection', function(client) {
+// websocket.sockets.on('connection', function(client) {
 
-    console.log('a client connected!');
+//     console.log('a client connected!');
 
-    client.on('new song', set_track_data);
+//     client.on('new song', set_track_data);
 
-    client.on('disconnect', function() {
-        current_track = {};
-    });
-});
+//     client.on('disconnect', function() {
+//         current_track = {};
+//     });
+// });
 
 function set_track_data(data) {
+    if (!data || !data.artist || !data.name || !data.uri) return;
     current_track['artist'] = data.artists;
     current_track['name'] = data.name;
     current_track['id'] = data.uri;

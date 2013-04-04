@@ -2,8 +2,8 @@ var sp = getSpotifyApi(1),
     models = sp.require('sp://import/scripts/api/models'),
     player = models.player,
     cursong = '',
-    final_countdown = 0,
-    socket;
+    // socket,
+    final_countdown = 0;
 
 exports.init = init;
 sp.require('jquery.min');
@@ -11,14 +11,14 @@ sp.require('jquery.min');
 function init() {
     load_cute_image();
 
-    $('#connect_submit').click(function() {
-        var port = $('#port_num').val();
-        server_connect(port);
-    });
-    $('#autoconnect').click(function() {
-        var port = $('#port_num').val();
-        server_connect(port, true);
-    });
+    // $('#connect_submit').click(function() {
+    //     var port = $('#port_num').val();
+    //     server_connect(port);
+    // });
+    // $('#autoconnect').click(function() {
+    //     var port = $('#port_num').val();
+    //     server_connect(port, true);
+    // });
 
     // Observe Spotify song change event
     player.observe(models.EVENT.CHANGE, function (e) {
@@ -35,14 +35,14 @@ function init() {
                 'uri' : player.track.uri
             };
 
-            if (socket) {
-                socket.emit('new song', request);
-            }
-            else {
-                $.post('http://localhost:' + $('#port_num').val(), request, function(resp) {
-                    console.log(resp);
-                },'json');
-            }
+            // if (socket) {
+            //     socket.emit('new song', request);
+            // }
+            // else {
+            $.post('http://localhost:' + $('#port_num').val(), request, function(resp) {
+                console.log(resp);
+            },'json');
+            // }
 
             if (final_countdown == 10) {
                 final_countdown = 0;
@@ -59,28 +59,28 @@ function load_cute_image() {
     });
 }
 
-function server_connect(port, autoconnect) {
-    socket = io.connect('http://localhost:' + port); // 'socket' is global scope so the observer can write to it
-    socket.on('connect', function() {
-        console.log('CONNECTED on ' + port)
+// function server_connect(port, autoconnect) {
+//     socket = io.connect('http://localhost:' + port); // 'socket' is global scope so the observer can write to it
+//     socket.on('connect', function() {
+//         console.log('CONNECTED on ' + port)
 
-        $('#connect_submit').attr('disabled', 'disabled');
-        $('#autoconnect').attr('disabled', 'disabled');
-        $('#connection_status')
-            .css('color','green')
-            .html('<b>CONNECTED on port ' + port + '</b>');
-    }).on('disconnect', function() {
-        $('#connection_status')
-            .css('color','red')
-            .html('<i>Disconnected</i>');
-        if (!autoconnect) {
-            socket = null;
-            $('#connect_submit').removeAttr('disabled');
-            $('#autoconnect').removeAttr('disabled');
-        }
-        else {
-            console.log('Lost connection, trying to reconnect...')
-            socket.socket.connect();
-        }
-    });
-}
+//         $('#connect_submit').attr('disabled', 'disabled');
+//         $('#autoconnect').attr('disabled', 'disabled');
+//         $('#connection_status')
+//             .css('color','green')
+//             .html('<b>CONNECTED on port ' + port + '</b>');
+//     }).on('disconnect', function() {
+//         $('#connection_status')
+//             .css('color','red')
+//             .html('<i>Disconnected</i>');
+//         if (!autoconnect) {
+//             socket = null;
+//             $('#connect_submit').removeAttr('disabled');
+//             $('#autoconnect').removeAttr('disabled');
+//         }
+//         else {
+//             console.log('Lost connection, trying to reconnect...')
+//             socket.socket.connect();
+//         }
+//     });
+// }
