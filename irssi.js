@@ -25,12 +25,23 @@ function init() {
         if (e.data.curtrack && player.track != null && player.track.uri != cursong) {
             cursong = player.track.uri;
 
+            artist_list = [];
+            for (var i = 0; i < player.track.artists.length; i++) {
+                artist_list.push(player.track.artists[i].data.name);
+            }
+            var request = {
+                'name' : player.track.name,
+                'artists' : artist_list.join(' & '),
+                'uri' : player.track.uri
+            };
+
             if (socket) {
-                socket.emit('new song', {
-                    'name' : player.track.name,
-                    'artists' : player.track.artists,
-                    'uri' : player.track.uri
-                });
+                socket.emit('new song', request);
+            }
+            else {
+                $.post('http://localhost:' + $('#port_num').val(), request, function(resp) {
+                    console.log(resp);
+                },'json');
             }
 
             if (final_countdown == 10) {
