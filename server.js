@@ -21,20 +21,6 @@ server = http.createServer(function(req, res) {
     res.end(JSON.stringify(current_track), "utf8");
 }).listen(http_port);
 
-// websocket = io.listen(server);
-
-// Once we've made a websocket connection...
-// websocket.sockets.on('connection', function(client) {
-
-//     console.log('a client connected!');
-
-//     client.on('new song', set_track_data);
-
-//     client.on('disconnect', function() {
-//         current_track = {};
-//     });
-// });
-
 function set_track_data(data) {
     if (!data || !data.artist || !data.name || !data.uri) return;
     current_track['artist'] = data.artists;
