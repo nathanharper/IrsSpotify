@@ -43,9 +43,7 @@ sub irsspotify {
     $DBI_USER = Irssi::settings_get_str('dbi_user');
     $DBI_PASSWORD = Irssi::settings_get_str('dbi_password');
     $MY_CHAN = Irssi::settings_get_str('irsspotify_chan');
-    if (my $chan = Irssi::channel_find($MY_CHAN)) {
-        $MY_NICK = $chan->{server}->{nick};
-    }
+    $MY_NICK = Irssi::settings_get_str('irsspotify_nick');
     my $timeout = Irssi::settings_get_int('irsspotify_timeout');
     my $timeout_flag = Irssi::timeout_add(($timeout * 1000), 'spotify_poll', '');
 }
@@ -142,6 +140,7 @@ sub catch_play {
 Irssi::settings_add_int('irsspotify', 'irsspotify_port', 8090);
 Irssi::settings_add_int('irsspotify', 'irsspotify_timeout', 20);
 Irssi::settings_add_str('irsspotify', 'irsspotify_chan', '#music');
+Irssi::settings_add_str('irsspotify', 'irsspotify_nick', 'my_nick');
 Irssi::settings_add_str('irsspotify', 'dbi_source', 'dbi:mysql:mysql:localhost');
 Irssi::settings_add_str('irsspotify', 'dbi_user', 'root');
 Irssi::settings_add_str('irsspotify', 'dbi_password', '');

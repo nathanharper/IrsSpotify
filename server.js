@@ -21,7 +21,10 @@ server = http.createServer(function(req, res) {
 }).listen(http_port);
 
 function set_track_data(data) {
-    if (!data || !data.artist || !data.name || !data.uri) return;
+    if (!data || !data.artists || !data.name || !data.uri) {
+        console.log('something broke');
+        return;
+    }
     current_track['artist'] = data.artists;
     current_track['name'] = data.name;
     current_track['id'] = data.uri;
