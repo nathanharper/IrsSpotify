@@ -94,12 +94,11 @@ sub save_song {
         my $dbh = DBI->connect($DBI_DRIVER, $DBI_USER, $DBI_PASSWORD)
             or return 0;
         my $user_id = get_user_id($dbh, $nick);
-        my $query = sprintf "INSERT INTO `play` (`title`, `artist`, `service`, `user_id`, `created_time`) VALUES (%s, %s, %s, %d, UNIX_TIMESTAMP())", 
-            $dbh->quote($title), 
-            $dbh->quote($artist),
-            $dbh->quote($service),
-            $user_id;
-        $dbh->do($query) 
+        my $query = "INSERT INTO `play` 
+                        (`title`, `artist`, `service`, `user_id`, `created_time`) 
+                     VALUES (?, ?, ?, ?, ?)";
+        $sth = $dbh->prepare($query);
+        $sth->execute($title, $artist, $service, $user_id, time) 
             or return 0;
         $dbh->disconnect;
     }
@@ -111,15 +110,14 @@ sub get_user_id {
     my ($dbh, $username) = @_;
     if (!$UID_HASH{$username}) {
         my $id = 0;
-        my $query = sprintf "SELECT `id` FROM `user` WHERE `name` = %s", $dbh->quote($username);
-        my $sth = $dbh->prepare($query);
-        $sth->execute() or return 0;
+        my $sth = $dbh->prepare("SELECT `id` FROM `user` WHERE `name` = ?");
+        $sth->execute($username) or return 0;
         if (my $result = $sth->fetchrow_hashref()) {
             $id = $result->{id} or 0;
         }
         else {
-            $query = sprintf "INSERT INTO `user` (`name`) VALUES (%s)", $dbh->quote($username);
-            $dbh->do($query) or return 0;
+            $sth = $dbh->prepare("INSERT INTO `user` (`name`) VALUES (?)");
+            $sth->execute($username) or return 0;
             $id = $dbh->last_insert_id(undef, undef, undef, undef) or 0; # parameters not necessary for mysql...
         }
         $UID_HASH{$username} = $id;
