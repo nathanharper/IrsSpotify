@@ -1,7 +1,15 @@
+weechat.register("weetify", 
+                 "Nathun", 
+                 "1.0", 
+                 "Beerware", 
+                 "Read and post Spotify plays", 
+                 "", 
+                 "UTF-8")
+
 local http = require "socket.http"
 local json = require "dkjson"
+local cat = table.concat
 -- local   db = require("luasql.mysql").mysql()
-weechat.register("weetify", "Nathun", "1.0", "Beerware", "Read and post Spotify plays", "", "UTF-8")
 
 local weetify = {
   track = {}, -- name, artist, id
@@ -17,38 +25,41 @@ local weetify = {
   users = {} -- id => name
 }
 
-function weetify.poll()
+function weetify_read_track(track)
+  if not track.artist 
+     or not track.name 
+     or not track.id 
+     or track.id == weetify.track.id
+  then return false end
+
+  weetify.track.name = track.name
+  weetify.track.artist = track.artist
+  weetify.track.id = track.id
+  return cat{track.artist,' - ',track.name,' (spotify)'}
+end
+
+-- local buffer = weechat.buffer_search("irc", weetify.get_chan())
+-- local buffer = weechat.info_get("irc_buffer", weetify.get_chan())
+function weetify_poll(...)
+  weechat.print("", "Polling...")
   local b, c = http.request('http://localhost:' .. weetify.port)
   if c == 200 then
     local resp, _, err = json.decode(b)
     if err then
-      weechat.print("", "JSON decode fail: " .. err)
-    else
-      -- local buffer = weechat.buffer_search("irc", weetify.get_chan())
-      local buffer = weechat.info_get("irc_buffer", table.concat{weetify.server,',',weetify.chan})
-      local track_str = weetify.read_track(resp)
-      if track_str then
-        weechat.command(buffer, "/me " .. track_str)
-        -- weetify.save_song(resp)
+      return weechat.print("", "JSON decode fail: " .. err)
+    end
+
+    local track_str = weetify_read_track(resp)
+    if track_str then
+      local buffer = ''
+      if weetify.server and weetify.chan then
+        buffer = cat{weetify.server,',',weetify.chan}
       end
+      weechat.command(buffer, "/me " .. track_str)
     end
   else
     weechat.print("", "Weetify HTTP request fail: " .. c)
   end
-end
-
-function weetify.get_chan()
-  return table.concat(weetify.server, '.', weetify.chan)
-end
-
-function weetify.read_track(track)
-  if not track.artist or not track.name or not track.id then
-    return false
-  end
-  weetify.track.name = track.name
-  weetify.track.artist = track.artist
-  weetify.track.id = track.id
-  return track.artist .. ' - ' .. track.name .. ' (spotify)'
 end
 
 -- function weetify.save_song(song)
@@ -63,6 +74,4 @@ end
 --     VALUES (]] .. 
 -- end
 
-function weetify.set_port(port)
-  weetify.port = port
-end
+weechat.hook_timer(30 * 1000, 30, 0, "weetify_poll", "")
