@@ -97,7 +97,7 @@ sub save_song {
         my $query = "INSERT INTO `play` 
                         (`title`, `artist`, `service`, `user_id`, `created_time`) 
                      VALUES (?, ?, ?, ?, ?)";
-        $sth = $dbh->prepare($query);
+        my $sth = $dbh->prepare($query);
         $sth->execute($title, $artist, $service, $user_id, time) 
             or return 0;
         $dbh->disconnect;
