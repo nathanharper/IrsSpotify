@@ -1,7 +1,7 @@
 var http_port = process.argv[2] || 8090,
     http = require('http'),
     qs = require('querystring'),
-    current_track = {'artist':'juan','name':'do ya','id':56};
+    current_track = {};
 
 server = http.createServer(function(req, res) {
     if (req.method == 'POST') {
