@@ -10,8 +10,8 @@ weechat.register(
 "UTF-8")
 
 port = '8090'
-server = ''
-chan = ''
+server = 'reflexions'
+chan = '#rJams'
 track = {}
 
 def weetify_read_track(new_track):
@@ -48,7 +48,8 @@ def weetify_poll(data, remaining_calls):
     weechat.prnt("", "No new track data.")
     return weechat.WEECHAT_RC_OK
 
-  weechat.command(server+','+chan, '/me ' + track_str)
+  buffer = weechat.info_get("irc_buffer", server+','+chan)
+  weechat.command(buffer, '/me ' + track_str)
   return weechat.WEECHAT_RC_OK
 
 # -- function weetify.save_song(song)
