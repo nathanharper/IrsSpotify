@@ -3,6 +3,7 @@ use utf8;
 use vars qw($VERSION %IRSSI);
 use Irssi qw(command_bind active_win);
 use LWP::UserAgent;
+use HTML::Entities;
 use JSON;
 use DBI;
 # TODO: 
@@ -73,11 +74,7 @@ sub spotify_poll {
         save_song($track_name, $track_artist, 'spotify', $MY_NICK);
 
         if (my $chan = Irssi::channel_find($MY_CHAN)) {
-            my $to_print = $track_artist . ' - ' . $track_name;
-            $to_print=~s/&quot;?|&ldquo;?|&rdquo;?/"/g;
-            $to_print=~s/&rsquo;?|&lsquo;?|&apos;?/'/g;
-            $to_print=~s/&amp;?/&/g;
-
+            my $to_print = decode_entities($track_artist . ' - ' . $track_name);
             $chan->window->command("/me : $to_print (spotify)");
         }
     }
